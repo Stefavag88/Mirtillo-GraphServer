@@ -1,7 +1,8 @@
 const neo4j = require('neo4j-driver').v1;
 const slugify = require('slugify');
+const pass = require('../neo4jconfig')
 // create Neo4j driver instance, here we use a Neo4j Sandbox instance. See neo4j.com/sandbox-v2, Recommendations example dataset
-let driver = neo4j.driver("bolt://localhost:7687", neo4j.auth.basic("neo4j", "640740VS"));
+let driver = neo4j.driver("bolt://localhost:7687", neo4j.auth.basic("neo4j", pass));
 
 const resolveFunctions = {
   Query: {
