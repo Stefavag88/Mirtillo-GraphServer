@@ -7,6 +7,8 @@ const resolvers = require('./Schemas/resolvers');
 const schema = require('./Schemas/schema');
 const app = express();
 
+app.use(cors());
+
 const executableSchema = makeExecutableSchema({
   typeDefs: schema,
   resolvers: resolvers

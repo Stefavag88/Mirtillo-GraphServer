@@ -1,8 +1,8 @@
 const neo4j = require('neo4j-driver').v1;
 const slugify = require('slugify');
-const pass = require('../neo4jconfig')
+const password = require('../neo4jconfig')
 // create Neo4j driver instance, here we use a Neo4j Sandbox instance. See neo4j.com/sandbox-v2, Recommendations example dataset
-let driver = neo4j.driver("bolt://localhost:7687", neo4j.auth.basic("neo4j", pass));
+let driver = neo4j.driver("bolt://localhost:7687", neo4j.auth.basic("neo4j", password));
 
 const resolveFunctions = {
   Query: {
@@ -37,12 +37,12 @@ const resolveFunctions = {
 
       const session = driver.session();
       const createPromise = session.writeTransaction(tx => {
-        const result = tx.run(`CREATE (${identifier}: Product {id: {id}, 
+        const result = tx.run(`CREATE (p: Product {id: {id}, 
                                                               name: {name}, 
                                                               category: {category}, 
                                                               description: {description}, 
                                                               available: {available}}) 
-                                RETURN ${identifier}`,
+                                RETURN p`,
                                 {id:productId,name,category, description, available}
         );
         return result;
@@ -52,7 +52,7 @@ const resolveFunctions = {
       createPromise
         .then(res => {
           const [result] = res.records.map(record => {
-            return record.get(0).properties;
+            return record.get('p').properties;
           });
           console.log(result);
           return result;
