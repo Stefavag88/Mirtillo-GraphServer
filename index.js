@@ -6,6 +6,7 @@ const { makeExecutableSchema } = require('graphql-tools');
 const resolvers = require('./Schemas/resolvers');
 const schema = require('./Schemas/schema');
 const app = express();
+require('dotenv').load();
 
 app.use(cors());
 

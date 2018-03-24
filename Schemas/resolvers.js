@@ -1,6 +1,6 @@
 const neo4j = require('neo4j-driver').v1;
 const slugify = require('slugify');
-const password = require('../neo4jconfig')
+const Product = require('../Models/Product');
 require('dotenv').load();
 // create Neo4j driver instance, here we use a Neo4j Sandbox instance. See neo4j.com/sandbox-v2, Recommendations example dataset
 let driver = neo4j.driver("bolt://localhost:7687", neo4j.auth.basic(process.env.NEO4J_USER, process.env.NEO4J_PASSWORD));
@@ -19,9 +19,20 @@ const resolveFunctions = {
     product(_, params) {
       //query Neo4j for finding product by ID
       let session = driver.session();
-      let query = "MATCH (product:Product) WHERE product.id EQUALS $id RETURN product;";
+      let id = params.id;
+      let query = `MATCH (p:Product{id:"${id}"}) return p;`;
       return session.run(query, params)
-        .then(result => { return result.records.map(record => { return record.get("product").properties }) })
+        .then(result => {
+          session.close();
+          const properties = result.records[0].get("p").properties; 
+          const {id, name, category, description, available} = properties;
+
+          return new Product(id, name, category, description, available);
+         })
+         .catch(err => {
+           session.close();
+           throw(err);
+         })
     }
   },
   Product: {
@@ -32,9 +43,6 @@ const resolveFunctions = {
       let { name, category, description, available } = args;
       if (available === undefined) available = false;
       let productId = slugify(name, { lower: true });
-      let identifier = productId.split('-').reduce((acc, val) => {
-          return acc += val.charAt(0);
-      }, "");
 
       const session = driver.session();
       const createPromise = session.writeTransaction(tx => {
@@ -55,11 +63,14 @@ const resolveFunctions = {
           const [result] = res.records.map(record => {
             return record.get('p').properties;
           });
-          console.log(result);
-          return result;
+          session.close();
+          const product = new Product(result.id, result.name, result.description, result.category, result.available);
+          return product;
         })
-        .then(() => session.close())
-        .catch(err => console.log(err));
+        .catch(err => {
+          session.close();
+          throw(err);
+        });
     }
   }
 };
